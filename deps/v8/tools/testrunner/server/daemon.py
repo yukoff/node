@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # This code has been written by Sander Marechal and published at:
 # http://www.jejik.com/articles/2007/02/a_simple_unix_linux_daemon_in_python/

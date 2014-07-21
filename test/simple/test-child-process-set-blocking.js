@@ -26,7 +26,7 @@ var ch = require('child_process');
 var SIZE = 100000;
 var childGone = false;
 
-var cp = ch.spawn('python', ['-c', 'print ' + SIZE + ' * "C"'], {
+var cp = ch.spawn('python2', ['-c', 'print ' + SIZE + ' * "C"'], {
   customFds: [0, 1, 2]
 });
 

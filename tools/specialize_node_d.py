@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 #
 # specialize_node_d.py output_file src/node.d flavor arch

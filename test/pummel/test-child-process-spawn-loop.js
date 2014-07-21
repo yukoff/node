@@ -34,7 +34,7 @@ var N = 40;
 var finished = false;
 
 function doSpawn(i) {
-  var child = spawn('python', ['-c', 'print ' + SIZE + ' * "C"']);
+  var child = spawn('python2', ['-c', 'print ' + SIZE + ' * "C"']);
   var count = 0;
 
   child.stdout.setEncoding('ascii');

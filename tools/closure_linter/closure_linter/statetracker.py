@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 #
 # Copyright 2007 The Closure Linter Authors. All Rights Reserved.
 #

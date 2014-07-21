@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 #
 # Copyright 2012 the V8 project authors. All rights reserved.
 # Redistribution and use in source and binary forms, with or without
@@ -240,7 +240,7 @@ class CppLintProcessor(SourceFileProcessor):
     command = ['cpplint.py', '--filter', filt]
     local_cpplint = join(path, "tools", "cpplint.py")
     if exists(local_cpplint):
-      command = ['python', local_cpplint, '--filter', filt]
+      command = ['python2', local_cpplint, '--filter', filt]
 
     commands = join([command + [file] for file in files])
     count = multiprocessing.cpu_count()

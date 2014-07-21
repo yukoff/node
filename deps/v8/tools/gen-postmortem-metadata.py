@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 #
 # Copyright 2012 the V8 project authors. All rights reserved.

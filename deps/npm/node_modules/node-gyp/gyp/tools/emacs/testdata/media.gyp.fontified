@@ -988,7 +988,7 @@
                 '<(SHARED_INTERMEDIATE_DIR)/media/jni/media_player_listener_jni.h',
               ],
               'action': [
-                'python',
+                'python2',
                 '<(DEPTH)/base/android/jni_generator/jni_generator.py',
                 '-o',
                 '<@(_inputs)',
