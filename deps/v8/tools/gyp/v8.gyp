@@ -75,7 +75,14 @@
                   },
                 }],
                 ['soname_version!=""', {
-                  'product_extension': 'so.<(soname_version)',
+                  'conditions': [
+                    ['OS=="win"', {
+                      'product_extension': '<(soname_version).dll',
+                      'ldflags': ['-Wl,--out-implib,<(PRODUCT_DIR)/libv8.<(soname_version).dll.a']
+                    }, {
+                      'product_extension': 'so.<(soname_version)',
+                    }],
+                  ],
                 }],
               ],
             },
