@@ -51,6 +51,19 @@
 #include "../include/v8.h"
 #include "globals.h"
 
+#if defined(_WIN32) && defined(V8_HOST_ARCH_64_BIT)
+// windows.h #defines this (only on x64). This causes problems because the
+// public API also uses MemoryBarrier at the public name for this fence. So, on
+// X64, undef it, and call its documented
+// (http://msdn.microsoft.com/en-us/library/windows/desktop/ms684208.aspx)
+// implementation directly.
+// Ensure windows.h gets included before undefining MemoryBarrier so that the
+// symbol gets defined and undefined at this point otherwise it gets included
+// after this #undef and has no effect.
+#include "win32-headers.h"
+#undef MemoryBarrier
+#endif
+
 namespace v8 {
 namespace internal {
 
