@@ -108,7 +108,6 @@
               'direct_dependent_settings': {
                 'defines': [
                   'V8_SHARED',
-                  'USING_V8_SHARED',
                 ],
               },
             }],
