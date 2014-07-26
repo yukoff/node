@@ -21,7 +21,10 @@
 
 #include "node.h"
 
-#ifdef _WIN32
+#if defined(_MSC_VER) || defined(__MINGW64_VERSION_MAJOR)
+#if defined (__cplusplus) && defined(__MINGW64_VERSION_MAJOR)
+extern "C" {
+#endif
 int wmain(int argc, wchar_t *wargv[]) {
   // Convert argv to to UTF8
   char** argv = new char*[argc];
@@ -59,6 +62,9 @@ int wmain(int argc, wchar_t *wargv[]) {
   // Now that conversion is done, we can finally start.
   return node::Start(argc, argv);
 }
+#if defined (__cplusplus) && defined(__MINGW64_VERSION_MAJOR)
+}
+#endif
 #else
 // UNIX
 int main(int argc, char *argv[]) {

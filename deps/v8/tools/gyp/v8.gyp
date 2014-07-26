@@ -737,7 +737,7 @@
               ],
               'msvs_disabled_warnings': [4351, 4355, 4800],
               'link_settings':  {
-                'libraries': [ '-lwinmm.lib', '-lws2_32.lib' ],
+                'libraries': [ '-lwinmm', '-lws2_32' ],
               },
             }],
             ['component=="shared_library"', {

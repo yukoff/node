@@ -34,6 +34,11 @@ typedef intptr_t ssize_t;
 #include <ws2tcpip.h>
 #include <windows.h>
 
+#ifndef __MINGW64_VERSION_MAJOR
+typedef PVOID RTL_SRWLOCK;
+typedef RTL_SRWLOCK SRWLOCK, *PSRWLOCK;
+#endif
+
 #include <process.h>
 #include <signal.h>
 #include <sys/stat.h>

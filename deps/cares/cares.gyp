@@ -114,8 +114,8 @@
             'src/ares_platform.c'
           ],
           'libraries': [
-            '-lws2_32.lib',
-            '-liphlpapi.lib'
+            '-lws2_32',
+            '-liphlpapi'
           ],
         }, {
           # Not Windows i.e. POSIX

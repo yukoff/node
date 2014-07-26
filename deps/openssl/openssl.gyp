@@ -957,8 +957,8 @@
         ['OS=="win"', {
           'link_settings': {
             'libraries': [
-              '-lgdi32.lib',
-              '-luser32.lib',
+              '-lgdi32',
+              '-luser32',
             ]
           },
           'defines': [

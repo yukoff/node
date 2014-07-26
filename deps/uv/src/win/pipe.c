@@ -30,6 +30,9 @@
 #include "stream-inl.h"
 #include "req-inl.h"
 
+#ifndef FILE_FLAG_FIRST_PIPE_INSTANCE
+#define FILE_FLAG_FIRST_PIPE_INSTANCE	524288
+#endif
 
 /* A zero-size buffer for use by uv_pipe_read */
 static char uv_zero_[] = "";

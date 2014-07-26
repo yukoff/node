@@ -30,6 +30,9 @@
 #include "handle-inl.h"
 #include "req-inl.h"
 
+#ifndef JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+#define JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE 0x2000
+#endif
 
 #define SIGKILL         9
 
