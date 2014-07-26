@@ -750,7 +750,7 @@ void fs__readdir(uv_fs_t* req) {
     uv_fatal_error(ERROR_OUTOFMEMORY, "malloc");
   }
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__MINGW64_VERSION_MAJOR)
   swprintf(path2, len + 3, fmt, pathw);
 #else
   swprintf(path2, fmt, pathw);
