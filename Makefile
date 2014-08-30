@@ -11,7 +11,10 @@ STAGINGSERVER ?= node-www
 OSTYPE := $(shell uname -s | tr '[A-Z]' '[a-z]')
 
 # Flags for packaging.
-NODE ?= ./node
+# Determine EXEEXT
+EXEEXT=$(shell $(PYTHON) -c "import sysconfig; print(sysconfig.get_config_var('EXE'))")
+
+NODE ?= ./node$(EXEEXT)
 
 # Default to verbose builds.
 # To do quiet/pretty builds, run `make V=` to set V to an empty string,
@@ -21,31 +24,31 @@ V ?= 1
 # BUILDTYPE=Debug builds both release and debug builds. If you want to compile
 # just the debug build, run `make -C out BUILDTYPE=Debug` instead.
 ifeq ($(BUILDTYPE),Release)
-all: out/Makefile node
+all: out/Makefile node$(EXEEXT)
 else
-all: out/Makefile node node_g
+all: out/Makefile node$(EXEEXT) node_g$(EXEEXT)
 endif
 
 # The .PHONY is needed to ensure that we recursively use the out/Makefile
 # to check for changes.
-.PHONY: node node_g
+.PHONY: node$(EXEEXT) node_g$(EXEEXT)
 
 ifeq ($(USE_NINJA),1)
-node: config.gypi
+node$(EXEEXT): config.gypi
 	$(NINJA) -C out/Release/
-	ln -fs out/Release/node node
+	ln -fs out/Release/node$(EXEEXT) $@
 
-node_g: config.gypi
+node_g$(EXEEXT): config.gypi
 	$(NINJA) -C out/Debug/
-	ln -fs out/Debug/node $@
+	ln -fs out/Debug/node$(EXEEXT) $@
 else
-node: config.gypi out/Makefile
+node$(EXEEXT): config.gypi out/Makefile
 	$(MAKE) -C out BUILDTYPE=Release V=$(V)
-	ln -fs out/Release/node node
+	ln -fs out/Release/node$(EXEEXT) $@
 
-node_g: config.gypi out/Makefile
+node_g$(EXEEXT): config.gypi out/Makefile
 	$(MAKE) -C out BUILDTYPE=Debug V=$(V)
-	ln -fs out/Debug/node $@
+	ln -fs out/Debug/node$(EXEEXT) $@
 endif
 
 out/Makefile: common.gypi deps/uv/uv.gyp deps/http_parser/http_parser.gyp deps/zlib/zlib.gyp deps/v8/build/common.gypi deps/v8/tools/gyp/v8.gyp node.gyp config.gypi
@@ -66,7 +69,7 @@ uninstall:
 	$(PYTHON) tools/install.py $@ $(DESTDIR)
 
 clean:
-	-rm -rf out/Makefile node node_g out/$(BUILDTYPE)/node blog.html email.md
+	-rm -rf out/Makefile node$(EXEEXT) node_g$(EXEEXT) out/$(BUILDTYPE)/node$(EXEEXT) blog.html email.md
 	-find out/ -name '*.o' -o -name '*.a' | xargs rm -rf
 	-rm -rf node_modules
 
@@ -74,7 +77,7 @@ distclean:
 	-rm -rf out
 	-rm -f config.gypi
 	-rm -f config.mk
-	-rm -rf node node_g blog.html email.md
+	-rm -rf node$(EXEEXT) node_g$(EXEEXT) blog.html email.md
 	-rm -rf node_modules
 
 test: all
@@ -88,8 +91,8 @@ test-valgrind: all
 	$(PYTHON) tools/test.py --mode=release --valgrind simple message
 
 test/gc/node_modules/weak/build/Release/weakref.node:
-	@if [ ! -f node ]; then make all; fi
-	./node deps/npm/node_modules/node-gyp/bin/node-gyp rebuild \
+	@if [ ! -f node$(EXEEXT) ]; then make all; fi
+	./node$(EXEEXT) deps/npm/node_modules/node-gyp/bin/node-gyp rebuild \
 		--directory="$(shell pwd)/test/gc/node_modules/weak" \
 		--nodedir="$(shell pwd)"
 
@@ -127,11 +130,11 @@ test-pummel: all
 test-internet: all
 	$(PYTHON) tools/test.py internet
 
-test-npm: node
-	./node deps/npm/test/run.js
+test-npm: node$(EXEEXT)
+	./node$(EXEEXT) deps/npm/test/run.js
 
-test-npm-publish: node
-	npm_package_config_publishtest=true ./node deps/npm/test/run.js
+test-npm-publish: node$(EXEEXT)
+	npm_package_config_publishtest=true ./node$(EXEEXT) deps/npm/test/run.js
 
 test-timers:
 	$(MAKE) --directory=tools faketime
@@ -152,7 +155,7 @@ website_files = \
 	out/doc/sh_main.js    \
 	out/doc/sh_javascript.min.js
 
-doc: $(apidoc_dirs) $(website_files) $(apiassets) $(apidocs) tools/doc/ out/doc/changelog.html node
+doc: $(apidoc_dirs) $(website_files) $(apiassets) $(apidocs) tools/doc/ out/doc/changelog.html node$(EXEEXT)
 
 doc-branch: NODE_DOC_VERSION = v$(shell $(PYTHON) tools/getnodeversion.py | cut -f1,2 -d.)
 doc-branch: doc
@@ -163,24 +166,24 @@ $(apidoc_dirs):
 out/doc/api/assets/%: doc/api_assets/% out/doc/api/assets/
 	cp $< $@
 
-out/doc/changelog.html: ChangeLog doc/changelog-head.html doc/changelog-foot.html tools/build-changelog.sh node
+out/doc/changelog.html: ChangeLog doc/changelog-head.html doc/changelog-foot.html tools/build-changelog.sh node$(EXEEXT)
 	bash tools/build-changelog.sh
 
 out/doc/%: doc/%
 	cp -r $< $@
 
-out/doc/api/%.json: doc/api/%.markdown node
-	NODE_DOC_VERSION=$(NODE_DOC_VERSION) out/Release/node tools/doc/generate.js --format=json $< > $@
+out/doc/api/%.json: doc/api/%.markdown node$(EXEEXT)
+	NODE_DOC_VERSION=$(NODE_DOC_VERSION) out/Release/node$(EXEEXT) tools/doc/generate.js --format=json $< > $@
 
-out/doc/api/%.html: doc/api/%.markdown node
-	NODE_DOC_VERSION=$(NODE_DOC_VERSION) out/Release/node tools/doc/generate.js --format=html --template=doc/template.html $< > $@
+out/doc/api/%.html: doc/api/%.markdown node$(EXEEXT)
+	NODE_DOC_VERSION=$(NODE_DOC_VERSION) out/Release/node$(EXEEXT) tools/doc/generate.js --format=html --template=doc/template.html $< > $@
 
 email.md: ChangeLog tools/email-footer.md
 	bash tools/changelog-head.sh | sed 's|^\* #|* \\#|g' > $@
 	cat tools/email-footer.md | sed -e 's|__VERSION__|'$(VERSION)'|g' >> $@
 
 blog.html: email.md
-	cat $< | ./node tools/doc/node_modules/.bin/marked > $@
+	cat $< | ./node$(EXEEXT) tools/doc/node_modules/.bin/marked > $@
 
 website-upload: doc
 	rsync -r out/doc/ node@nodejs.org:~/web/nodejs.org/
@@ -342,7 +345,7 @@ pkg-upload: pkg
 	scp -p node-$(FULLVERSION).pkg $(STAGINGSERVER):nodejs/$(DISTTYPEDIR)/$(FULLVERSION)/node-$(FULLVERSION).pkg
 	ssh $(STAGINGSERVER) "touch nodejs/$(DISTTYPEDIR)/$(FULLVERSION)/node-$(FULLVERSION).pkg.done"
 
-$(TARBALL): release-only node doc
+$(TARBALL): release-only node$(EXEEXT) doc
 	git archive --format=tar --prefix=$(TARNAME)/ HEAD | tar xf -
 	mkdir -p $(TARNAME)/doc/api
 	cp doc/node.1 $(TARNAME)/doc/node.1
@@ -512,9 +515,9 @@ bench-http-simple:
 	 benchmark/http_simple_bench.sh
 
 bench-idle:
-	./node benchmark/idle_server.js &
+	./node$(EXEEXT) benchmark/idle_server.js &
 	sleep 1
-	./node benchmark/idle_clients.js &
+	./node$(EXEEXT) benchmark/idle_clients.js &
 
 jslintfix:
 	PYTHONPATH=tools/closure_linter/ $(PYTHON) tools/closure_linter/closure_linter/fixjsstyle.py --strict --nojsdoc -r lib/ -r src/ --exclude_files lib/punycode.js
