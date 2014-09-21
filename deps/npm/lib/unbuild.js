@@ -79,7 +79,6 @@ function rmBins (pkg, folder, parent, top, cb) {
 function rmMans (pkg, folder, parent, top, cb) {
   if (!pkg.man
       || !top
-      || process.platform === "win32"
       || !npm.config.get("global")) {
     return cb()
   }

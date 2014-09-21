@@ -199,7 +199,7 @@ function linkBin (from, to, gently, cb) {
 }
 
 function linkMans (pkg, folder, parent, gtop, cb) {
-  if (!pkg.man || !gtop || process.platform === "win32") return cb()
+  if (!pkg.man || !gtop) return cb()
 
   var manRoot = path.resolve(npm.config.get("prefix"), "share", "man")
 
