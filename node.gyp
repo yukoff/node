@@ -233,7 +233,10 @@
           ]
         } ],
         [ 'node_use_perfctr=="true"', {
-          'defines': [ 'HAVE_PERFCTR=1' ],
+          'defines': [
+            'HAVE_PERFCTR=1',
+            '_WIN32_WINNT=0x0600',
+          ],
           'dependencies': [ 'node_perfctr' ],
           'sources': [
             'src/node_win32_perfctr_provider.h',
