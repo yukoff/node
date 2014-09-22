@@ -12,6 +12,7 @@ import re
 import shutil
 import sys
 import sysconfig
+import platform
 
 # set at init time
 dst_dir = None
@@ -105,16 +106,24 @@ def npm_files(action):
   if action == uninstall:
     action([link_path], 'bin/npm')
   elif action == install:
-    try_symlink('../lib/node_modules/npm/bin/npm-cli.js', link_path)
-    if os.environ.get('PORTABLE'):
-      # This crazy hack is necessary to make the shebang execute the copy
-      # of node relative to the same directory as the npm script. The precompiled
-      # binary tarballs use a prefix of "/" which gets translated to "/bin/node"
-      # in the regular shebang modifying logic, which is incorrect since the
-      # precompiled bundle should be able to be extracted anywhere and "just work"
-      shebang = '/bin/sh\n// 2>/dev/null; exec "`dirname "$0"`/node" "$0" "$@"'
+    # Use MSYS2 shell script wrapper.
+    if ((os.name == 'nt' and 'GCC' in sys.version) or
+        (os.name == 'posix' and 'NT' in platform.system())):
+      # Copy the wrapper shell script
+      try_copy('deps/npm/bin/npm', link_path)
+      # deps/npm/bin/npm is a shell script so the shebang must run sh, not node
+      shebang='/usr/bin/env sh'
     else:
-      shebang = os.path.join(node_prefix, 'bin/node')
+      try_symlink('../lib/node_modules/npm/bin/npm-cli.js', link_path)
+      if os.environ.get('PORTABLE'):
+        # This crazy hack is necessary to make the shebang execute the copy
+        # of node relative to the same directory as the npm script. The precompiled
+        # binary tarballs use a prefix of "/" which gets translated to "/bin/node"
+        # in the regular shebang modifying logic, which is incorrect since the
+        # precompiled bundle should be able to be extracted anywhere and "just work"
+        shebang = '/bin/sh\n// 2>/dev/null; exec "`dirname "$0"`/node" "$0" "$@"'
+      else:
+        shebang = os.path.join(node_prefix, 'bin/node')
     update_shebang(link_path, shebang)
   else:
     assert(0) # unhandled action type
