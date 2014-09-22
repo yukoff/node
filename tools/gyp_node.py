@@ -14,6 +14,17 @@ import gyp
 # to be written.
 output_dir = os.path.join(os.path.abspath(node_root), 'out')
 
+try:
+  od_index = sys.argv.index('--output-dir')
+  if od_index != -1:
+    output_dir = sys.argv[od_index+1]
+    if not os.path.isabs(output_dir):
+      output_dir = os.path.join(os.path.abspath(node_root), output_dir)
+    sys.argv.pop(od_index)
+    sys.argv.pop(od_index)
+except:
+  pass
+
 def run_gyp(args):
   rc = gyp.main(args)
   if rc != 0:

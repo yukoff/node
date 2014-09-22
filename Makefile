@@ -5,6 +5,7 @@ PYTHON ?= python
 NINJA ?= ninja
 DESTDIR ?=
 SIGN ?=
+OUTDIR ?= out
 FLAKY_TESTS ?= run
 STAGINGSERVER ?= node-www
 
@@ -24,39 +25,39 @@ V ?= 1
 # BUILDTYPE=Debug builds both release and debug builds. If you want to compile
 # just the debug build, run `make -C out BUILDTYPE=Debug` instead.
 ifeq ($(BUILDTYPE),Release)
-all: out/Makefile node$(EXEEXT)
+all: $(OUTDIR)/Makefile node$(EXEEXT)
 else
-all: out/Makefile node$(EXEEXT) node_g$(EXEEXT)
+all: $(OUTDIR)/Makefile node$(EXEEXT) node_g$(EXEEXT)
 endif
 
-# The .PHONY is needed to ensure that we recursively use the out/Makefile
+# The .PHONY is needed to ensure that we recursively use the $(OUTDIR)/Makefile
 # to check for changes.
 .PHONY: node$(EXEEXT) node_g$(EXEEXT)
 
 ifeq ($(USE_NINJA),1)
 node$(EXEEXT): config.gypi
-	$(NINJA) -C out/Release/
-	ln -fs out/Release/node$(EXEEXT) $@
+	$(NINJA) -C $(OUTDIR)/Release/
+	ln -fs $(OUTDIR)/Release/node$(EXEEXT) $@
 
 node_g$(EXEEXT): config.gypi
-	$(NINJA) -C out/Debug/
-	ln -fs out/Debug/node$(EXEEXT) $@
+	$(NINJA) -C $(OUTDIR)/Debug/
+	ln -fs $(OUTDIR)/Debug/node$(EXEEXT) $@
 else
-node$(EXEEXT): config.gypi out/Makefile
-	$(MAKE) -C out BUILDTYPE=Release V=$(V)
-	ln -fs out/Release/node$(EXEEXT) $@
+node$(EXEEXT): config.gypi $(OUTDIR)/Makefile
+	$(MAKE) -C $(OUTDIR) BUILDTYPE=Release V=$(V)
+	ln -fs $(OUTDIR)/Release/node$(EXEEXT) $@
 
-node_g$(EXEEXT): config.gypi out/Makefile
-	$(MAKE) -C out BUILDTYPE=Debug V=$(V)
-	ln -fs out/Debug/node$(EXEEXT) $@
+node_g$(EXEEXT): config.gypi $(OUTDIR)/Makefile
+	$(MAKE) -C $(OUTDIR) BUILDTYPE=Debug V=$(V)
+	ln -fs $(OUTDIR)/Debug/node$(EXEEXT) $@
 endif
 
-out/Makefile: common.gypi deps/uv/uv.gyp deps/http_parser/http_parser.gyp deps/zlib/zlib.gyp deps/v8/build/common.gypi deps/v8/tools/gyp/v8.gyp node.gyp config.gypi
+$(OUTDIR)/Makefile: common.gypi deps/uv/uv.gyp deps/http_parser/http_parser.gyp deps/zlib/zlib.gyp deps/v8/build/common.gypi deps/v8/tools/gyp/v8.gyp node.gyp config.gypi
 ifeq ($(USE_NINJA),1)
-	touch out/Makefile
+	touch $(OUTDIR)/Makefile
 	$(PYTHON) tools/gyp_node.py -f ninja
 else
-	$(PYTHON) tools/gyp_node.py -f make
+	$(PYTHON) tools/gyp_node.py -f make --output-dir=$(OUTDIR)
 endif
 
 config.gypi: configure
@@ -69,12 +70,12 @@ uninstall:
 	$(PYTHON) tools/install.py $@ $(DESTDIR)
 
 clean:
-	-rm -rf out/Makefile node$(EXEEXT) node_g$(EXEEXT) out/$(BUILDTYPE)/node$(EXEEXT) blog.html email.md
-	-find out/ -name '*.o' -o -name '*.a' | xargs rm -rf
+	-rm -rf $(OUTDIR)/Makefile node$(EXEEXT) node_g$(EXEEXT) $(OUTDIR)/$(BUILDTYPE)/node$(EXEEXT) blog.html email.md
+	-find $(OUTDIR)/ -name '*.o' -o -name '*.a' | xargs rm -rf
 	-rm -rf node_modules
 
 distclean:
-	-rm -rf out
+	-rm -rf $(OUTDIR)
 	-rm -f config.gypi
 	-rm -f config.mk
 	-rm -rf node$(EXEEXT) node_g$(EXEEXT) blog.html email.md
@@ -144,18 +145,18 @@ test-timers-clean:
 	$(MAKE) --directory=tools clean
 
 apidoc_sources = $(wildcard doc/api/*.markdown)
-apidocs = $(addprefix out/,$(apidoc_sources:.markdown=.html)) \
-          $(addprefix out/,$(apidoc_sources:.markdown=.json))
+apidocs = $(addprefix $(OUTDIR)/,$(apidoc_sources:.markdown=.html)) \
+          $(addprefix $(OUTDIR)/,$(apidoc_sources:.markdown=.json))
 
-apidoc_dirs = out/doc out/doc/api/ out/doc/api/assets
+apidoc_dirs = $(OUTDIR)/doc $(OUTDIR)/doc/api/ $(OUTDIR)/doc/api/assets
 
-apiassets = $(subst api_assets,api/assets,$(addprefix out/,$(wildcard doc/api_assets/*)))
+apiassets = $(subst api_assets,api/assets,$(addprefix $(OUTDIR)/,$(wildcard doc/api_assets/*)))
 
 website_files = \
-	out/doc/sh_main.js    \
-	out/doc/sh_javascript.min.js
+	$(OUTDIR)/doc/sh_main.js    \
+	$(OUTDIR)/doc/sh_javascript.min.js
 
-doc: $(apidoc_dirs) $(website_files) $(apiassets) $(apidocs) tools/doc/ out/doc/changelog.html node$(EXEEXT)
+doc: $(apidoc_dirs) $(website_files) $(apiassets) $(apidocs) tools/doc/ $(OUTDIR)/doc/changelog.html node$(EXEEXT)
 
 doc-branch: NODE_DOC_VERSION = v$(shell $(PYTHON) tools/getnodeversion.py | cut -f1,2 -d.)
 doc-branch: doc
@@ -163,20 +164,20 @@ doc-branch: doc
 $(apidoc_dirs):
 	mkdir -p $@
 
-out/doc/api/assets/%: doc/api_assets/% out/doc/api/assets/
+$(OUTDIR)/doc/api/assets/%: doc/api_assets/% $(OUTDIR)/doc/api/assets/
 	cp $< $@
 
-out/doc/changelog.html: ChangeLog doc/changelog-head.html doc/changelog-foot.html tools/build-changelog.sh node$(EXEEXT)
+$(OUTDIR)/doc/changelog.html: ChangeLog doc/changelog-head.html doc/changelog-foot.html tools/build-changelog.sh node$(EXEEXT)
 	bash tools/build-changelog.sh
 
-out/doc/%: doc/%
+$(OUTDIR)/doc/%: doc/%
 	cp -r $< $@
 
-out/doc/api/%.json: doc/api/%.markdown node$(EXEEXT)
-	NODE_DOC_VERSION=$(NODE_DOC_VERSION) out/Release/node$(EXEEXT) tools/doc/generate.js --format=json $< > $@
+$(OUTDIR)/doc/api/%.json: doc/api/%.markdown node$(EXEEXT)
+	NODE_DOC_VERSION=$(NODE_DOC_VERSION) $(OUTDIR)/Release/node$(EXEEXT) tools/doc/generate.js --format=json $< > $@
 
-out/doc/api/%.html: doc/api/%.markdown node$(EXEEXT)
-	NODE_DOC_VERSION=$(NODE_DOC_VERSION) out/Release/node$(EXEEXT) tools/doc/generate.js --format=html --template=doc/template.html $< > $@
+$(OUTDIR)/doc/api/%.html: doc/api/%.markdown node$(EXEEXT)
+	NODE_DOC_VERSION=$(NODE_DOC_VERSION) $(OUTDIR)/Release/node$(EXEEXT) tools/doc/generate.js --format=html --template=doc/template.html $< > $@
 
 email.md: ChangeLog tools/email-footer.md
 	bash tools/changelog-head.sh | sed 's|^\* #|* \\#|g' > $@
@@ -186,7 +187,7 @@ blog.html: email.md
 	cat $< | ./node$(EXEEXT) tools/doc/node_modules/.bin/marked > $@
 
 website-upload: doc
-	rsync -r out/doc/ node@nodejs.org:~/web/nodejs.org/
+	rsync -r $(OUTDIR)/doc/ node@nodejs.org:~/web/nodejs.org/
 	ssh node@nodejs.org '\
     rm -f ~/web/nodejs.org/dist/latest &&\
     ln -s $(VERSION) ~/web/nodejs.org/dist/latest &&\
@@ -198,13 +199,13 @@ website-upload: doc
 doc-branch-upload: NODE_DOC_VERSION = v$(shell $(PYTHON) tools/getnodeversion.py | cut -f1,2 -d.)
 doc-branch-upload: doc-branch
 	echo $(NODE_DOC_VERSION)
-	rsync -r out/doc/api/ node@nodejs.org:~/web/nodejs.org/$(NODE_DOC_VERSION)
+	rsync -r $(OUTDIR)/doc/api/ node@nodejs.org:~/web/nodejs.org/$(NODE_DOC_VERSION)
 
-docopen: out/doc/api/all.html
-	-google-chrome out/doc/api/all.html
+docopen: $(OUTDIR)/doc/api/all.html
+	-google-chrome $(OUTDIR)/doc/api/all.html
 
 docclean:
-	-rm -rf out/doc
+	-rm -rf $(OUTDIR)/doc
 
 run-ci:
 	$(PYTHON) ./configure --without-snapshot $(CONFIG_FLAGS)
@@ -284,7 +285,7 @@ XZ=$(shell which xz > /dev/null 2>&1; echo $$?)
 XZ_COMPRESSION ?= 9
 PKG=$(TARNAME).pkg
 PACKAGEMAKER ?= /Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker
-PKGDIR=out/dist-osx
+PKGDIR=$(OUTDIR)/dist-osx
 
 release-only:
 	@if [ "$(shell git status --porcelain | egrep -v '^\?\? ')" = "" ]; then \
@@ -310,14 +311,14 @@ release-only:
 
 $(PKG): release-only
 	rm -rf $(PKGDIR)
-	rm -rf out/deps out/Release
+	rm -rf $(OUTDIR)/deps $(OUTDIR)/Release
 	$(PYTHON) ./configure \
 		--dest-cpu=ia32 \
 		--tag=$(TAG) \
 		--without-snapshot \
 		$(CONFIG_FLAGS)
 	$(MAKE) install V=$(V) DESTDIR=$(PKGDIR)/32
-	rm -rf out/deps out/Release
+	rm -rf $(OUTDIR)/deps $(OUTDIR)/Release
 	$(PYTHON) ./configure \
 		--dest-cpu=x64 \
 		--tag=$(TAG) \
@@ -349,7 +350,7 @@ $(TARBALL): release-only node$(EXEEXT) doc
 	git archive --format=tar --prefix=$(TARNAME)/ HEAD | tar xf -
 	mkdir -p $(TARNAME)/doc/api
 	cp doc/node.1 $(TARNAME)/doc/node.1
-	cp -r out/doc/api/* $(TARNAME)/doc/api/
+	cp -r $(OUTDIR)/doc/api/* $(TARNAME)/doc/api/
 	rm -rf $(TARNAME)/deps/v8/test # too big
 	rm -rf $(TARNAME)/doc/images # too big
 	find $(TARNAME)/ -type l | xargs rm # annoying on windows
@@ -411,7 +412,7 @@ endif
 
 $(BINARYTAR): release-only
 	rm -rf $(BINARYNAME)
-	rm -rf out/deps out/Release
+	rm -rf $(OUTDIR)/deps $(OUTDIR)/Release
 	$(PYTHON) ./configure --prefix=/ --without-snapshot --dest-cpu=$(DESTCPU) --tag=$(TAG) $(CONFIG_FLAGS)
 	$(MAKE) install DESTDIR=$(BINARYNAME) V=$(V) PORTABLE=1
 	cp README.md $(BINARYNAME)
@@ -462,7 +463,7 @@ endif
 
 
 $(PKGSRC): release-only
-	rm -rf dist out
+	rm -rf dist $(OUTDIR)
 	$(PYTHON) configure --prefix=/ --without-snapshot \
 		--dest-cpu=$(DESTCPU) --tag=$(TAG) $(CONFIG_FLAGS)
 	$(MAKE) install DESTDIR=dist
