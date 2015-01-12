@@ -24,7 +24,7 @@ CC = $(PREFIX)gcc
 AR = $(PREFIX)ar
 E=.exe
 
-CFLAGS=$(CPPFLAGS) -g --std=gnu89 -D_WIN32_WINNT=0x0600
+CFLAGS=$(CPPFLAGS) -g --std=gnu89 -D_WIN32_WINNT=0x0501
 LDFLAGS=-lm
 
 WIN_SRCS=$(wildcard $(SRCDIR)/src/win/*.c)
