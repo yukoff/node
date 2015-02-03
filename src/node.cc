@@ -2380,6 +2380,17 @@ Handle<Object> SetupProcessObject(int argc, char *argv[]) {
   // process.platform
   process->Set(String::NewSymbol("platform"), String::New(PLATFORM));
 
+#if defined(_WIN32)
+  // distinguish between msvc and mingw-w64 for node-gyp
+  #if defined(_MSC_VER)
+    process->Set(String::NewSymbol("wintoolchain"), String::New("msvc"));
+  #elif defined(__MINGW32__)
+    process->Set(String::NewSymbol("wintoolchain"), String::New("mingw-w64"));
+  #else
+    #error "Cannot determine wintoolchain"
+  #endif
+#endif
+
   // process.argv
   Local<Array> arguments = Array::New(argc - option_end_index + 1);
   arguments->Set(Integer::New(0), String::New(argv[0]));
